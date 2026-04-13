@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-app
+  labels:
+    app: matrix-multiplication
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matrix-multiplication
+  template:
+    metadata:
+      labels:
+        app: matrix-multiplication
+    spec:
+      containers:
+      - name: matrix-app-container
+        # Jenkins will push to this image tag
+        image: joshnajohnson/java-app:latest 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000  # Ensure your Java code listens on 9000
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-service
+spec:
+  type: NodePort
+  selector:
+    app: matrix-multiplication
+  ports:
+    - port: 90          # Cluster internal port
+      targetPort: 9000  # Matches containerPort
+      nodePort: 30008   # Access via <NodeIP>:30008
